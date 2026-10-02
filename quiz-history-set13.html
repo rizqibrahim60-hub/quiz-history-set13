@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تخصص التاريخ - وضع الاستذكار الذكي (النموذج الثالث عشر)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=Almarai:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', 'Almarai', sans-serif; }
+        body { background-color: #0b1329; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        
+        .main-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; background: #111936; padding: 12px 24px; border-radius: 50px; border: 1px solid #d4af37; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.4); z-index: 1000; align-items: center; }
+        .btn-ctrl { border: none; padding: 9px 18px; border-radius: 20px; font-size: 14px; font-weight: 800; cursor: pointer; color: #ffffff; transition: all 0.2s ease; }
+        .btn-nav { background: #1e3a8a; } 
+
+        #quiz-app-wrapper { position: relative; width: 100%; max-width: 1020px; }
+        #quiz-app { width: 100%; min-height: 520px; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6); border: 4px solid #0f2c59; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        #drawCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; touch-action: none; border-radius: 24px; }
+
+        .top-header {
+            position: relative;
+            background: radial-gradient(circle at center, #103b70 0%, #081d3d 100%);
+            padding: 18px 30px 22px 30px;
+            color: #ffffff;
+            border-bottom: 5px solid #d4af37;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-side { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 140px; }
+        .header-center { text-align: center; flex-grow: 1; }
+        .main-title { font-size: 34px; font-weight: 900; color: #ffffff; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .sub-title { color: #ffd700; font-size: 18px; font-weight: 800; margin: 4px 0; }
+        .author-name { color: #ffffff; font-size: 18px; font-weight: 800; }
+
+        .gold-exam-tag-side {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(255, 215, 0, 0.1) 100%);
+            color: #ffd700;
+            border: 1.5px solid #d4af37;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 800;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+            white-space: nowrap;
+            text-align: center;
+            direction: rtl;
+            unicode-bidi: isolate;
+        }
+
+        .gold-sub-badge {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(255, 215, 0, 0.08) 100%);
+            color: #ffd700;
+            border: 1px solid #d4af37;
+            padding: 3px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+            text-align: center;
+            direction: rtl;
+            unicode-bidi: isolate;
+        }
+
+        .header-icon-box { width: 56px; height: 56px; border-radius: 50%; border: 2px solid #d4af37; display: flex; align-items: center; justify-content: center; font-size: 26px; background: rgba(212, 175, 55, 0.12); color: #ffd700; }
+
+        .progress-bar-container { background: #e2e8f0; height: 9px; width: 100%; }
+        .progress-bar { background: #10b981; height: 100%; width: 0%; transition: width 0.3s ease; }
+
+        .status-row { display: flex; justify-content: space-between; padding: 14px 40px 0 40px; font-size: 17px; font-weight: 900; color: #0f2c59; }
+        .card-body { padding: 18px 40px 30px 40px; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
+
+        .question-card-container { background: #ffffff; border: 2.5px solid #0f2c59; border-radius: 18px; padding: 18px 24px; box-shadow: 0 6px 18px rgba(15, 44, 89, 0.07); }
+        .question-header-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .badge-q-tag { background: #0f2c59; color: #ffd700; border: 1.5px solid #d4af37; padding: 7px 18px; border-radius: 12px; font-size: 19px; font-weight: 900; white-space: nowrap; }
+        .q-text-content { font-size: 22px; font-weight: 900; color: #0f172a; line-height: 1.45; flex-grow: 1; }
+
+        .reveal-action-box { display: flex; justify-content: center; align-items: center; gap: 16px; padding: 25px 0; }
+        .btn-reveal {
+            background: linear-gradient(135deg, #0f2c59 0%, #1e3a8a 100%);
+            color: #ffd700;
+            border: 2px solid #d4af37;
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-size: 17px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 15px rgba(15, 44, 89, 0.25);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-reveal:hover { background: linear-gradient(135deg, #1e3a8a 100%, #2563eb 100%); transform: translateY(-3px); }
+        .btn-reveal-ans { background: linear-gradient(135deg, #065f46 0%, #047857 100%); border-color: #10b981; color: #ffffff; }
+        .btn-reveal-ans:hover { background: linear-gradient(135deg, #047857 100%, #059669 100%); }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        .conclusion-card-box {
+            background: radial-gradient(circle at center, #103b70 0%, #081d3d 100%);
+            border: 3px solid #d4af37;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            color: #ffffff;
+            box-shadow: 0 10px 30px rgba(15, 44, 89, 0.2);
+        }
+
+        .conclusion-main-title {
+            font-size: 36px;
+            font-weight: 900;
+            color: #ffd700;
+            margin-bottom: 18px;
+            line-height: 1.4;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            direction: rtl;
+        }
+
+        .conclusion-sub-tag {
+            display: inline-block;
+            background: rgba(212, 175, 55, 0.2);
+            color: #ffffff;
+            border: 2.5px solid #d4af37;
+            padding: 10px 30px;
+            border-radius: 30px;
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+            direction: rtl;
+        }
+
+        .bottom-footer { background: radial-gradient(circle at center, #103b70 0%, #081d3d 100%); border-top: 4px solid #d4af37; padding: 14px 35px; display: flex; justify-content: space-between; align-items: center; color: #ffffff; }
+        .footer-sec { display: flex; align-items: center; gap: 12px; }
+        .footer-sec-center { text-align: center; }
+        .footer-icon-circle { width: 44px; height: 44px; background: rgba(212, 175, 55, 0.15); border: 2px solid #d4af37; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #ffd700; }
+        .footer-text-title { font-size: 13px; color: #ffd700; font-weight: 800; }
+        .footer-text-val { font-size: 16px; font-weight: 900; direction: ltr; color: #ffffff; letter-spacing: 0.5px; }
+        .footer-author-main { font-size: 20px; font-weight: 900; color: #ffffff; }
+
+        @media print {
+            body { background: none; padding: 0; }
+            .main-controls, .progress-bar-container, .status-row, #drawCanvas, .reveal-action-box { display: none !important; }
+            .options-grid { display: grid !important; }
+            #quiz-app { box-shadow: none; border: 2px solid #0f2c59; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-controls">
+        <button class="btn-ctrl btn-nav" id="btn-prev" onclick="prevQuestion()">➔ السابق</button>
+        <button class="btn-ctrl btn-nav" id="btn-next-top" onclick="nextQuestion()">التالي ⬅</button>
+    </div>
+
+    <div id="quiz-app-wrapper">
+        <canvas id="drawCanvas" width="1020" height="560"></canvas>
+        <div id="quiz-app">
+            <div class="top-header">
+                <div class="header-side">
+                    <div class="header-icon-box">📖</div>
+                    <div class="gold-sub-badge">لا أحلل نشرها ورقياً أو الكترونياً</div>
+                </div>
+
+                <div class="header-center">
+                    <div class="main-title">تخصص التاريخ</div>
+                    <div class="sub-title">اختبار الرخصة المهنية - النموذج الثالث عشر</div>
+                    <div class="author-name">إبراهيم أبوزيد | معلم ومدرب وباحث</div>
+                </div>
+
+                <div class="header-side">
+                    <div class="header-icon-box">⏳</div>
+                    <div class="gold-exam-tag-side">عام 1446هـ - على رأس العمل</div>
+                </div>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <div id="quiz-screen">
+                <div class="status-row">
+                    <span id="question-count">السؤال 1 من 75</span>
+                    <span id="score-count">النقاط: 0</span>
+                </div>
+
+                <div class="card-body" id="card-body-content">
+                    <div class="question-card-container" id="q-box-container">
+                        <div class="question-header-row">
+                            <div class="badge-q-tag" id="q-badge">سؤال 1</div>
+                            <div class="q-text-content" id="q-text">نص السؤال...</div>
+                        </div>
+                    </div>
+
+                    <div class="reveal-action-box" id="revealBox">
+                        <button class="btn-reveal" onclick="revealOptionsOnly()">👁️ إظهار الخيارات للحل</button>
+                        <button class="btn-reveal btn-reveal-ans" onclick="revealAndShowAnswer()">💡 إظهار الإجابة الصحيحة مباشرة</button>
+                    </div>
+
+                    <div class="options-grid" id="options-container"></div>
+                    <div id="conclusion-container" style="display:none;"></div>
+                </div>
+            </div>
+
+            <div class="bottom-footer">
+                <div class="footer-sec">
+                    <div class="footer-icon-circle">📞</div>
+                    <div>
+                        <div class="footer-text-title">رقم الهاتف</div>
+                        <div class="footer-text-val">966 55 783 1353 / 010 9828 0895</div>
+                    </div>
+                </div>
+
+                <div class="footer-sec-center">
+                    <div class="footer-author-main">إبراهيم أبوزيد | معلم ومدرب وباحث</div>
+                </div>
+
+                <div class="footer-sec" style="direction: ltr;">
+                    <div class="footer-icon-circle">✈</div>
+                    <div style="text-align: right;">
+                        <div class="footer-text-title">تليجرام</div>
+                        <div class="footer-text-val">t.me/myibhistoricy</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var rawCardsData = [
+            { num: 1, q: "بدأ الشيخ محمد بن عبد الوهاب دعوته من:", options: ["حريملاء", "العيينة", "درعية", "رياض"], correct: 0 },
+            { num: 2, q: "أول وزير سعودي، وأول وزير للمالية:", options: ["عبد الله بن سليمان الحمدان", "إبراهيم السليمان", "خصل الملك فيصل", "حمد الجاسر"], correct: 0 },
+            { num: 3, q: "أول وزير خارجية للملكة العربية السعودية:", options: ["الملك فيصل رحمه الله تعالي", "الملك خالد", "الأمير سعود الفيصل", "الملك سلمان"], correct: 0 },
+            { num: 4, q: "ولد الشيخ محمد بن عبد الوهاب عام:", options: ["1115هـ", "1103هـ", "1120هـ", "1143هـ"], correct: 0 },
+            { num: 5, q: "مدة حكم الإمام عبد العزيز بن سعود:", options: ["تسعاً وثلاثين سنة من عام 1179 إلي 1218هـ", "ثلاثون سنة", "عشرون سنة", "خمس عشرة سنة"], correct: 0 },
+            { num: 6, q: "والدة الملك عبد العزيز رحمه الله تعالي:", options: ["السيدة / سارة السديري", "طرفة آل الشيخ", "نورة بنت عبد الرحمن", "موضي بنت أبي وهطان"], correct: 0 },
+            { num: 7, q: "مقر منظمة التعاون الإسلامي:", options: ["اختيرت جدة مقرًا مؤقتًا للمنظمة، بانتظار تحرير القدس، حيث سيكون المقر الدائم", "الرياض", "مكة المكرمة", "القاهرة"], correct: 0 },
+            { num: 8, q: "وصف المؤرخون الإمام سعود بسعود الكبير بسبب:", options: ["لإتساع الدولة السعودية الأولي في ععهده وصلت الي حدود العراق والشام واليمن وجهات في ساحل الخليج العربي.", "لكثرة غزواته", "لطول عمره", "لشجاعته الفائقة"], correct: 0 },
+            { num: 9, q: "آخر أئمة الدولة السعودية الثانية:", options: ["الإمام عبد الرحمن بن فيصل", "الإمام عبد الله بن فيصل", "الإمام فيصل بن تركي", "الإمام سعود بن فيصل"], correct: 0 },
+            { num: 10, q: "أسس إمارة الدرعية:", options: ["مـــــــانع المريدي", "مقرن بن مرخان", "ربيعة بن سيف", "سعود بن محمد"], correct: 0 },
+            { num: 11, q: "أول إمرأة أيدت الدعوة الإصلاحية:", options: ["موضي بنت أبي وهطان زوجة الأمير محمد بن سعود وأوّل امرأة تحدّث مؤرخو نجد عن مناصرتها لدعوة الشيخ محمد بن عبد الوهاب.", "سارة السديري", "نورة بنت عبد الرحمن", "طرفة آل الشيخ"], correct: 0 },
+            { num: 12, q: "أول رائد فضاء في عهد الملك فهد:", options: ["انطلاق مكوك الفضاء ديسكفري عام 1985، الذي حمل الأمير سلطان بن سلمان في رحلته الشهيرة إلى الفضاء، ليصبح أول رائد فضاء عربي مسلم", "سلطان بن سلمان منفردًا", "أحمد سعيد", "محمد الفايز"], correct: 0 },
+            { num: 13, q: "تقع مدينة الفاو الأثرية القديمة في:", options: ["عند ممر عبر جبال الطويق حيث تتقاطع مع وادي الدواسر", "في شمال المملكة", "في وسط الربع الخالي", "بالقرب من تبوك"], correct: 0 },
+            { num: 14, q: "تمكن الملك عبد العزيز من ضم الرياض عام 1309هـ الموافق:", options: ["يناير عام 1902م", "سبتمبر 1932م", "مارس 1924م", "يوليو 1910م"], correct: 0 },
+            { num: 15, q: "استطاع أن ينجح مع أمراء الخليج العربي بتأسيس مجلس التعاون لدول الخليج العربية الست:", options: ["الملك خالد.. رائد التعاون الخليجي", "الملك فهد", "الملك عبد الله", "الملك سلمان"], correct: 0 },
+            { num: 16, q: "المناطق التي كانت تحت حكم الدولة السعودية الأولى دخلت تحت حكم الدولة السعودية الثانية ماعدا:", options: ["الحجاز", "القصيم", "الأحساء", "عسير"], correct: 0 },
+            { num: 17, q: "أول رئيس وزراء في عهد الملك عبد العزيز:", options: ["ولي العهد آنذاك سعود بن عبد العزيز", "الملك فيصل", "عبد الله بن سليمان", "فهد بن عبد العزيز"], correct: 0 },
+            { num: 18, q: "كتاب كشف الشبهات:", options: ["رسائل في الألوهية والربوبية", "في الفقه والأحكام", "في السيرة النبوية", "في التفسير"], correct: 0 },
+            { num: 19, q: "الدولة الأموية بالأندلس تزامنت مع عهد الخليفة:", options: ["أبو جعفر المنصور", "هارون الرشيد", "المأمون", "المعتصم"], correct: 0 },
+            { num: 20, q: "معركة بالقرب من حلوان كانت بوابة خسائر الفرس:", options: ["معركة جلولاء 16 للهجرة الموافق 637 ميلادية", "القادسية", "نهاوند", "الذلاقة"], correct: 0 },
+            { num: 21, q: "الترتيب الصحيح لسلاطين المماليك:", options: ["شجر الدر – عز الدين أيبك – المنصور علي – سيف الدين قطز – الظاهر بيبرس – المنصور قلاوون", "قطز - بيبرس - أيبك", "أيبك - قلاوون - قطز", "بيبرس - شجر الدر - أيبك"], correct: 0 },
+            { num: 22, q: "غزو أبرهة الأشرم الكعبة عام:", options: ["571م", "610م", "622م", "550م"], correct: 0 },
+            { num: 23, q: "قضي الأحباش علي مملكة:", options: ["حمير", "سبأ", "معين", "قتبان"], correct: 0 },
+            { num: 24, q: "أقصي اتساع للفتوحات الإسلامية في عهد الدولة:", options: ["الأموية", "العباسية", "الراشدية", "المملوكية"], correct: 0 },
+            { num: 25, q: "أنشا ديوان الخاتم:", options: ["معاوية بن أبي سفيان", "عمر بن الخطاب", "عبد الملك بن مروان", "الوليد بن عبد الملك"], correct: 0 },
+            { num: 26, q: "آخر حكام الدولة الأموية:", options: ["مروان بن محمد", "يزيد بن الوليد", "إبراهيم بن الوليد", "مروان بن الحكم"], correct: 0 },
+            { num: 27, q: "نهاية الدولة الأموية كان بعد معركة:", options: ["الزاب الكبير عام 132هـ", "اليرموك", "عين جالوت", "مرو"], correct: 0 },
+            { num: 28, q: "أول دولة استقلت عن الخلافة العباسية:", options: ["الطاهرية في الشرق", "الطولونية في مصر", "الأغالبة في إفريقية", "الإخشيدية"], correct: 0 },
+            { num: 29, q: "استمرت الدعوة السرية في مكة:", options: ["ثلاث سنوات", "خمس سنوات", "سنتان", "أربع سنوات"], correct: 0 },
+            { num: 30, q: "تميز العهد المدني عن العهد المكي بـ:", options: ["تمكين التشريع الإسلامي", "كثرة الآيات المكية", "نزول قصص الأنبياء", "قلة الأحكام"], correct: 0 },
+            { num: 31, q: "حلف الفضول لـ:", options: ["نصرة المظلومين", "التجارة والتنافس", "حماية القوافل", "دفاع عن مكة"], correct: 0 },
+            { num: 32, q: "طاعون عمواس نسبة لبلدة في:", options: ["بلدة عمواس بالقرب من بيت المقدس 18هـ", "الشام بالقرب من دمشق", "العراق بالقرب من الكوفة", "مصر بالقرب من الفسطاط"], correct: 0 },
+            { num: 33, q: "رحلتا الشتاء والصيف:", options: ["رحلة الشتاء إلى اليمن والصيف إلى الشام", "رحلة الشتاء إلى الشام والصيف إلى اليمن", "الشتاء إلى العراق والصيف إلى مصر", "الشتاء إلى الحجاز والصيف إلى اليمن"], correct: 0 },
+            { num: 34, q: "استمرت ثورة بابك الخرمي:", options: ["21 سنة", "10 سنوات", "15 سنة", "عشرون سنة"], correct: 0 },
+            { num: 35, q: "الخليفة العباسي الذي عاصر قيام الدولة الأموية بالأندلس عام 138هـ:", options: ["أبو جعفر المنصور", "السفاح", "مهدي", "هارون الرشيد"], correct: 0 },
+            { num: 36, q: "اهتم ببيت الحكمة وطورها:", options: ["الخليفة العباسي المأمون", "هارون الرشيد", "المنصور", "المعتصم"], correct: 0 },
+            { num: 37, q: "الذي أدخل الأصنام للكعبة:", options: ["عمرو بن لحي الخزاعي", "أبو لهب", "أبو جهل", "قصي بن كلاب"], correct: 0 },
+            { num: 38, q: "أول أعمال الرسول صلي الله عليه وسلم بالمدينة:", options: ["بناء المسجد", "المؤاخاة", "وثيقة المدينة", "حفر الخندق"], correct: 0 },
+            { num: 39, q: "الطريقة السياسية التي تم عليها اختبار الخلفاء الراشدين:", options: ["الترشيح والإنتخاب ( نظام الشوري )", "الوراثة المطلقة", "التعيين المباشر", "القرعة"], correct: 0 },
+            { num: 40, q: "إنشاء الدواوين في الدولة الإسلامية:", options: ["عمر بن الخطاب", "أبو بكر الصديق", "عثمان بن عفان", "معاوية بن أبي سفيان"], correct: 0 },
+            { num: 41, q: "قال: { اللهم لو كنت أعلم أن وراء هذا البحر أرضا لخضته إليها}:", options: ["موسي بن نصير", "عقبة بن نافع", "طارق بن زياد", "عبد الرحمن الغافقي"], correct: 0 },
+            { num: 42, q: "قام بكتابة القرآن الكريم في مصحف واحد ووزعه نسخ علي الامصار الإسلامية حتي تتوحد قراءة القران الكريم:", options: ["عثمان بن عفان", "أبو بكر الصديق", "عمر بن الخطاب", "علي بن أبي طالب"], correct: 0 },
+            { num: 43, q: "غزوة مؤته عام:", options: ["8 هجرية", "7 هجرية", "9 هجرية", "6 هجرية"], correct: 0 },
+            { num: 44, q: "معركة شقحب سنة ٧٠٢ هـ بين:", options: ["المماليك المغول", "المسلمين والصليبيين", "العثمانيين والمماليك", "العباسيين والأمويين"], correct: 0 },
+            { num: 45, q: "الضرائب على التجارة في الدولة الأموية كانت تُعرف باسم:", options: ["المكوس", "الجزية", "الخراج", "العشور"], correct: 0 },
+            { num: 46, q: "فتنة مقتل الخليفة عثمان بن عفان سببها:", options: ["عبد الله بن سبأ", "معاوية بن أبي سفيان", "عمرو بن العاص", "طلحة بن عبيد الله"], correct: 0 },
+            { num: 47, q: "طلائع الغرب لاحتلال الدول العربية:", options: ["البرتغال . بريطانيا . أسبانيا", "فرنسا . بريطانيا . إيطاليا", "إسبانيا . البرتغال . هولندا", "بريطانيا . فرنسا . روسيا"], correct: 0 },
+            { num: 48, q: "صدر وعد بلفور عام:", options: ["1917م", "1914م", "1920م", "1923م"], correct: 0 },
+            { num: 49, q: "حدثت الثورة الصناعية في أوروبا بعد:", options: ["اختراع آلة البخار", "اكتشاف الكهرباء", "اختراع الطباعة", "الثورة الفرنسية"], correct: 0 },
+            { num: 50, q: "المدينة التي تم فيها اغتيال ولي عهد النمسا وكان شرارة الحرب العالمية الأولي:", options: ["سراييفو", "فيينا", "برلين", "بلغراد"], correct: 0 },
+            { num: 51, q: "قام بتأميم شركة قناة السويس:", options: ["جمال عبد الناصر عام 1956م", "أنور السادات", "محمد نجيب", "الملك فاروق"], correct: 0 },
+            { num: 52, q: "حدثت الثورة المهدية في السودان في القرن:", options: ["التاسع عشر عام 1884م", "العشرين الميلادي", "الثامن عشر الميلادي", "السابع عشر الميلادي"], correct: 0 },
+            { num: 53, q: "اتفاقية ألحقت ضرراً بالقضية الكردية:", options: ["معاهدة لوزان 1923م", "معاهدة سيفر", "اتفاقية سايكس بيكو", "معاهدة فرساي"], correct: 0 },
+            { num: 54, q: "اتفاقية وضعت تونس تحت الاستعمار الفرنسي:", options: ["معاهدة باردو (قصر السعيد) 1881م", "معاهدة فاس", "معاهدة الحماية", "اتفاقية بوتا"], correct: 0 },
+            { num: 55, q: "نافس البطالمة في تجارة البحر الأحمر؟", options: ["السبئيون", "الأنباط", "الفينيقيون", "التدمريون"], correct: 0 },
+            { num: 56, q: "قضي الأحباش علي ملك الحميريين في اليمن بقيادة أبرهة بعد مقتل:", options: ["ذو نواس في معركة نجران", "سيف بن ذي يزن", "تبان أسعد", "امرؤ القيس"], correct: 0 },
+            { num: 57, q: "قوم عاد هم قوم أُرسل إليهم النبي هود عليه السلام في:", options: ["منطقة الأحقاف", "مدين", "اليمامة", "العلا"], correct: 0 },
+            { num: 58, q: "رحلتا الشتاء والصيف (تكرار سياقي للتثبيت):", options: ["رحلة الشتاء إلى اليمن والصيف إلى الشام", "الشتاء إلى الشام والصيف إلى اليمن", "الشتاء إلى العراق والصيف إلى الشام", "الشتاء إلى مصر والصيف إلى الحجاز"], correct: 0 },
+            { num: 59, q: "كان دعوة الياس عليه السلام لأهل:", options: ["بعلبك غربي دمشق", "نينوى", "مؤتفكة", "مدين"], correct: 0 },
+            { num: 60, q: "الفيلولوجيا:", options: ["فقه اللغة ودراستها", "علم الآثار", "علم الأعراق", "علم التاريخ"], correct: 0 },
+            { num: 61, q: "بُنِيت الأهرامات في مصر القديمة لتكون:", options: ["مقابر ملكية فاخرة للفراعنة للحياة الأخرى", "حصون دفاعية", "مخازن للحبوب", "معابد دينية"], correct: 0 },
+            { num: 62, q: "\"سيرجيوبوليس\":", options: ["الرصافة مدينة قديمة في العهد الروماني والبيزنطي (مدينة القديس سركيس)", "تدمر التاريخية", "الحضر العراقية", "البتراء الأردنية"], correct: 0 },
+            { num: 63, q: "أهم مصادر تاريخ العرب قبل الإسلام:", options: ["القصائد والشعر", "النقوش الحجرية", "الروايات الشفهية فقط", "الكتب السماوية"], correct: 0 },
+            { num: 64, q: "تغير تدوين التاريخ للبحث والتدقيق ونقد الحقائق التاريخيه في القرن الثامن عشر علي يد:", options: ["الألمان", "الفرنسيين", "الإنجليز", "الإيطاليين"], correct: 0 },
+            { num: 65, q: "عاصمة مملكة الأنباط:", options: ["البتراء", "بصرى", "المدائن", "الحضرة"], correct: 0 },
+            { num: 66, q: "عند تدريس المعارك التاريخية نستخدم:", options: ["الخريطة التاريخية", "الخريطة الصماء", "الرسوم البيانية", "الصور الفوتوغرافية"], correct: 0 },
+            { num: 67, q: "عندما يقوم المعلم بتمرين طلابه على سرد القصص وقول الشعر فهو يعزز:", options: ["الذكاء اللغوي", "الذكاء المنطقي", "الذكاء الحركي", "الذكاء البصري"], correct: 0 },
+            { num: 68, q: "وضع معلم العنوان الرئيسي ( الاستعمار ) وتفرع منه مصطلحات فالأنسب استخدام:", options: ["خريطة المفاهيم", "الخط الزمني", "شجرة النسب", "الرسوم البيانية"], correct: 0 },
+            { num: 69, q: "شكل عنوانه الاتحاد الاوروبي و متفرع منه هيكلة الاتحاد و ارقام وتواريخ:", options: ["حفظ معلومات", "استقصاء علمي", "تفكير ناقد", "عصف ذهني"], correct: 0 },
+            { num: 70, q: "معلم تاريخ : طلب من الطلاب ان يكتبوا عن الدرعية عاصمة الدولة السعودية الاولى والرياض عاصمة الدولة السعودية الثانية:", options: ["مقارنة", "تلخيص", "تحليل", "تقويم"], correct: 0 },
+            { num: 71, q: "كيفيه توضيح اسماء الملوك في الدوله السعوديه الثالثه نتبع:", options: ["شجرة النسب", "الخط الزمني", "الخرائط الجغرافية", "الجداول التكرارية"], correct: 0 },
+            { num: 72, q: "محمد بن سعود إلى ١١٧٩هــ - عبدالعزيز ابنه إلى ١٢١٨هـ - سعود بن عبدالعزيز إلى ١٢٢٩هـ - عبدالله بن سعود إلى ١٢٣٣هـ:", options: ["الخط الزمني", "شجرة النسب", "خريطة المفاهيم", "المخطط الهيكلي"], correct: 0 },
+            { num: 73, q: "معلم يشرح عن النظام الاساسي للحكم والواجبات والحقوق ينمي لدى الطالب الوعي:", options: ["الوطني", "التاريخي", "الجغرافي", "الاقتصادي"], correct: 0 },
+            { num: 74, q: "غزوه الخندق يكتبها الطلاب على شكل قصه بهدف:", options: ["العظة والعبرة", "الحفظ والتلقين", "التحليل الإحصائي", "القياس المنطقي"], correct: 0 },
+            { num: 75, q: "الوثيقة التاريخية:", options: ["عرض وتحليل", "حفظ وتسميع", "نسخ ونقل", "تأليف وقصة"], correct: 0 }
+        ];
+
+        function balanceQuizOptions(dataset) {
+            return dataset.map((item, index) => {
+                const correctText = item.options[item.correct];
+                const wrongOptions = item.options.filter((_, i) => i !== item.correct);
+                const shuffledWrongs = [...wrongOptions].sort(() => 0.5 - Math.random());
+                const targetIndex = index % 4;
+                
+                const finalOptions = [];
+                let wrongPtr = 0;
+                for (let pos = 0; pos < 4; pos++) {
+                    if (pos === targetIndex) {
+                        finalOptions.push(correctText);
+                    } else {
+                        finalOptions.push(shuffledWrongs[wrongPtr++]);
+                    }
+                }
+                
+                return {
+                    num: item.num || (index + 1),
+                    q: item.q,
+                    options: finalOptions,
+                    correct: targetIndex
+                };
+            });
+        }
+
+        var cardsData = balanceQuizOptions(rawCardsData);
+        cardsData.push({
+            isConclusion: true,
+            title: "تمنياتي لكم بالتوفيق والنجاح",
+            subTitle: "لا أحلل نشرها ورقياً أو الكترونيا الورد"
+        });
+
+        var letters = ["أ", "ب", "ج", "د"];
+        var currentIndex = 0;
+        var score = 0;
+        var answersState = {};
+        var optionsRevealedState = {};
+
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const wrapper = document.getElementById('quiz-app-wrapper');
+            canvas.width = wrapper.offsetWidth;
+            canvas.height = wrapper.offsetHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('load', resizeCanvas);
+
+        function render() {
+            if (cardsData.length === 0) return;
+            if (currentIndex >= cardsData.length) currentIndex = cardsData.length - 1;
+
+            var item = cardsData[currentIndex];
+            var totalQCount = cardsData.filter(c => !c.isConclusion).length;
+
+            document.getElementById("progress-bar").style.width = ((currentIndex + 1) / cardsData.length * 100) + "%";
+            document.getElementById("btn-prev").disabled = (currentIndex === 0);
+            document.getElementById("btn-next-top").disabled = (currentIndex === cardsData.length - 1);
+
+            var qBoxContainer = document.getElementById("q-box-container");
+            var revealBox = document.getElementById("revealBox");
+            var optionsContainer = document.getElementById("options-container");
+            var conclusionContainer = document.getElementById("conclusion-container");
+
+            if (item.isConclusion) {
+                document.getElementById("question-count").innerText = "الشريحة الختامية";
+                document.getElementById("score-count").innerText = `النقاط النهائية: ${score} من ${totalQCount}`;
+                
+                qBoxContainer.style.display = "none";
+                revealBox.style.display = "none";
+                optionsContainer.style.display = "none";
+                conclusionContainer.style.display = "block";
+
+                conclusionContainer.innerHTML = `
+                    <div class="conclusion-card-box">
+                        <div style="font-size: 50px; margin-bottom: 10px;">🌟🎓🌟</div>
+                        <div class="conclusion-main-title">${item.title}</div>
+                        <div class="conclusion-sub-tag">${item.subTitle}</div>
+                    </div>
+                `;
+            } else {
+                document.getElementById("question-count").innerText = `السؤال ${currentIndex + 1} من ${totalQCount}`;
+                document.getElementById("score-count").innerText = `النقاط: ${score}`;
+
+                qBoxContainer.style.display = "block";
+                conclusionContainer.style.display = "none";
+
+                var qNumber = item.num !== undefined ? item.num : (currentIndex + 1);
+                document.getElementById("q-badge").innerText = `سؤال ${qNumber}`;
+                document.getElementById("q-text").innerText = item.q;
+
+                var isRevealed = optionsRevealedState[currentIndex] || answersState.hasOwnProperty(currentIndex);
+
+                if (!isRevealed) {
+                    revealBox.style.display = "flex";
+                    optionsContainer.style.display = "none";
+                    optionsContainer.innerHTML = "";
+                } else {
+                    revealBox.style.display = "none";
+                    optionsContainer.style.display = "grid";
+                    renderOptionsExplicitly(currentIndex, optionsContainer, false);
+                }
+            }
+            resizeCanvas();
+        }
+
+        function renderOptionsExplicitly(qIdx, container, forceShowCorrect) {
+            container.innerHTML = "";
+            var item = cardsData[qIdx];
+            var hasAnswered = answersState.hasOwnProperty(qIdx) || forceShowCorrect;
+            var chosenAns = answersState[qIdx];
+
+            for (var idx = 0; idx < item.options.length; idx++) {
+                (function(i) {
+                    var btn = document.createElement("button");
+                    var isCorrect = (i === item.correct);
+                    var isWrong = (hasAnswered && !forceShowCorrect && i === chosenAns && !isCorrect);
+
+                    var bg = "#f8fafc";
+                    var border = "#cbd5e1";
+                    var textColor = "#1e293b";
+                    var letterBg = "#e2e8f0";
+                    var letterColor = "#0f2c59";
+
+                    if (hasAnswered && isCorrect) {
+                        bg = "#ecfdf5";
+                        border = "#10b981";
+                        textColor = "#064e3b";
+                        letterBg = "#10b981";
+                        letterColor = "#ffffff";
+                    } else if (isWrong) {
+                        bg = "#fef2f2";
+                        border = "#ef4444";
+                        textColor = "#7f1d1d";
+                        letterBg = "#ef4444";
+                        letterColor = "#ffffff";
+                    }
+
+                    btn.style.cssText = `background-color: ${bg} !important; border: 2.5px solid ${border} !important; border-radius: 14px; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; text-align: right; min-height: 64px; opacity: 1 !important; visibility: visible !important;`;
+
+                    var checkHtml = (hasAnswered && isCorrect) ? '<span style="font-size: 20px; font-weight: 900; color: #10b981; margin-right: auto; margin-left: 8px; background: #d1fae5; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1.5px solid #10b981; opacity: 1 !important;">✔</span>' : "";
+
+                    btn.innerHTML = `
+                        <span style="width: 38px; height: 38px; background-color: ${letterBg} !important; color: ${letterColor} !important; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; flex-shrink: 0; opacity: 1 !important; visibility: visible !important;">${letters[i]}</span>
+                        <span style="font-size: 18px; font-weight: 800; color: ${textColor} !important; flex-grow: 1; padding: 0 14px; opacity: 1 !important; visibility: visible !important;">${item.options[i]}</span>
+                        ${checkHtml}
+                    `;
+
+                    if (!hasAnswered) {
+                        btn.onclick = function() { selectOption(i); };
+                    }
+                    container.appendChild(btn);
+                })(idx);
+            }
+        }
+
+        function revealOptionsOnly() {
+            optionsRevealedState[currentIndex] = true;
+            render();
+        }
+
+        function revealAndShowAnswer() {
+            optionsRevealedState[currentIndex] = true;
+            var item = cardsData[currentIndex];
+            if (!answersState.hasOwnProperty(currentIndex)) {
+                answersState[currentIndex] = item.correct;
+                score++;
+            }
+            render();
+        }
+
+        function selectOption(selectedIndex) {
+            if (answersState.hasOwnProperty(currentIndex)) return;
+            answersState[currentIndex] = selectedIndex;
+            var item = cardsData[currentIndex];
+
+            if (selectedIndex === item.correct) {
+                score++;
+                document.getElementById("score-count").innerText = "النقاط: " + score;
+            }
+            render();
+        }
+
+        function nextQuestion() {
+            if (currentIndex < cardsData.length - 1) {
+                currentIndex++;
+                render();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                render();
+            }
+        }
+
+        render();
+    </script>
+</body>
+</html>
